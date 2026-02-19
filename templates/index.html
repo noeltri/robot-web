@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ANDROIDE</title>
+
+    <style>
+        body {
+            background-color: #0f111a;
+            color: #00f7ff;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        /* NÚCLEO */
+        #core {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-top: 20px;
+            background: #00f7ff;
+            box-shadow: 0 0 20px #00f7ff;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* HUD */
+        #hud {
+            width: 60%;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #energiaBar {
+            width: 100%;
+            height: 20px;
+            background-color: #1e213a;
+            border: 1px solid #00f7ff;
+        }
+
+        #energiaNivel {
+            height: 100%;
+            width: 100%;
+            background-color: #00f7ff;
+            transition: width 0.5s ease;
+        }
+
+        #estadoTexto {
+            margin-top: 5px;
+        }
+
+        /* CHAT */
+        #chat {
+            width: 60%;
+            height: 50%;
+            border: 1px solid #00f7ff;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: #14162b;
+            margin-top: 20px;
+        }
+
+        .mensaje {
+            margin: 10px 0;
+        }
+
+        .usuario {
+            text-align: right;
+            color: #ffffff;
+        }
+
+        .robot {
+            text-align: left;
+            color: #00f7ff;
+        }
+
+        #inputArea {
+            margin-top: 15px;
+        }
+
+        input {
+            width: 300px;
+            padding: 10px;
+            background: #1e213a;
+            border: 1px solid #00f7ff;
+            color: white;
+        }
+
+        button {
+            padding: 10px;
+            background: #00f7ff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="core"></div>
+
+<h1>ANDROIDE - INTERFAZ NEURAL</h1>
+
+<div id="hud">
+    <div id="energiaBar">
+        <div id="energiaNivel"></div>
+    </div>
+    <p id="estadoTexto">Energía: 100 | Estado: óptimo</p>
+</div>
+
+<div id="chat"></div>
+
+<div id="inputArea">
+    <input id="mensaje" placeholder="Escribí un comando...">
+    <button onclick="enviar()">Enviar</button>
+</div>
+
+<script>
+function enviar() {
+    let mensaje = document.getElementById("mensaje").value;
+    let chat = document.getElementById("chat");
+
+    if (mensaje.trim() === "") return;
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({mensaje: mensaje})
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        // Limpiar chat
+        chat.innerHTML = "";
+
+        // Mostrar historial completo
+        data.historial.forEach(item => {
+            chat.innerHTML += `<div class="mensaje usuario">${item.usuario}</div>`;
+            chat.innerHTML += `<div class="mensaje robot">${item.robot}</div>`;
+        });
+
+        chat.scrollTop = chat.scrollHeight;
+
+        // Actualizar barra
+        document.getElementById("energiaNivel").style.width = data.energia + "%";
+        document.getElementById("estadoTexto").innerText =
+            "Energía: " + data.energia + " | Estado: " + data.emocion;
+
+        // Actualizar núcleo
+        let core = document.getElementById("core");
+
+        if (data.energia > 50) {
+            core.style.background = "#00f7ff";
+            core.style.boxShadow = "0 0 20px #00f7ff";
+            core.style.animationDuration = "1s";
+        } 
+        else if (data.energia > 20) {
+            core.style.background = "orange";
+            core.style.boxShadow = "0 0 20px orange";
+            core.style.animationDuration = "1.5s";
+        } 
+        else {
+            core.style.background = "red";
+            core.style.boxShadow = "0 0 20px red";
+            core.style.animationDuration = "0.5s";
+        }
+
+    });
+
+    document.getElementById("mensaje").value = "";
+}
+</script>
+
+</body>
+</html>
