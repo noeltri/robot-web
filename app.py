@@ -1,11 +1,43 @@
 from flask import Flask, render_template, request, jsonify
+import sqlite3
+from datetime import datetime
 
 app = Flask(__name__)
+
+
+def init_db():
+    conn = sqlite3.connect("memory.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message TEXT,
+            response TEXT,
+            timestamp TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
 
 energia = 100
 emocion = "óptimo"
 ultimo_tema = None
 historial = []
+
+
+def save_to_memory(user_message, bot_response):
+    conn = sqlite3.connect("memory.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO conversations (message, response, timestamp) VALUES (?, ?, ?)",
+        (user_message, bot_response, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
 
 def procesar_comando(comando):
     global energia, emocion, ultimo_tema
@@ -52,11 +84,12 @@ def chat():
     comando = request.json["mensaje"].lower()
     respuesta = procesar_comando(comando)
 
-    # Guardar en memoria
     historial.append({
         "usuario": comando,
         "robot": respuesta
     })
+
+    save_to_memory(comando, respuesta)
 
     return jsonify({
         "respuesta": respuesta,
@@ -65,7 +98,6 @@ def chat():
         "historial": historial
     })
 
+
 if __name__ == "__main__":
     app.run(debug=True)
-
-
