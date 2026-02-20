@@ -61,7 +61,7 @@
             margin-top: 5px;
         }
 
-        /* CHAT */
+    
         #chat {
             width: 60%;
             height: 50%;
@@ -120,7 +120,14 @@
     <p id="estadoTexto">Energía: 100 | Estado: óptimo</p>
 </div>
 
-<div id="chat"></div>
+<div id="chat">
+    {% if conversaciones %}
+        {% for mensaje, respuesta in conversaciones %}
+            <div class="mensaje usuario">{{ mensaje }}</div>
+            <div class="mensaje robot">{{ respuesta }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
 
 <div id="inputArea">
     <input id="mensaje" placeholder="Escribí un comando...">

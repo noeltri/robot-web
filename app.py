@@ -75,7 +75,8 @@ def procesar_comando(comando):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    conversaciones = load_memory()
+    return render_template("index.html", conversaciones=conversaciones)
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -90,7 +91,13 @@ def chat():
     })
 
     save_to_memory(comando, respuesta)
-
+def load_memory():
+    conn = sqlite3.connect("memory.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT message, response FROM conversations ORDER BY id DESC LIMIT 20")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows[::-1]  
     return jsonify({
         "respuesta": respuesta,
         "energia": energia,
@@ -101,3 +108,5 @@ def chat():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+    
