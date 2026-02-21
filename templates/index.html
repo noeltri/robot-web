@@ -19,7 +19,6 @@
             margin-top: 20px;
         }
 
-        /* NÚCLEO */
         #core {
             width: 80px;
             height: 80px;
@@ -36,7 +35,6 @@
             100% { transform: scale(1); }
         }
 
-        /* HUD */
         #hud {
             width: 60%;
             margin-top: 10px;
@@ -57,11 +55,6 @@
             transition: width 0.5s ease;
         }
 
-        #estadoTexto {
-            margin-top: 5px;
-        }
-
-    
         #chat {
             width: 60%;
             height: 50%;
@@ -78,7 +71,7 @@
 
         .usuario {
             text-align: right;
-            color: #ffffff;
+            color: white;
         }
 
         .robot {
@@ -121,12 +114,12 @@
 </div>
 
 <div id="chat">
-    {% if conversaciones %}
-        {% for mensaje, respuesta in conversaciones %}
-            <div class="mensaje usuario">{{ mensaje }}</div>
-            <div class="mensaje robot">{{ respuesta }}</div>
-        {% endfor %}
-    {% endif %}
+{% if conversaciones %}
+    {% for mensaje, respuesta in conversaciones %}
+        <div class="mensaje usuario">{{ mensaje }}</div>
+        <div class="mensaje robot">{{ respuesta }}</div>
+    {% endfor %}
+{% endif %}
 </div>
 
 <div id="inputArea">
@@ -136,23 +129,24 @@
 
 <script>
 function enviar() {
-    let mensaje = document.getElementById("mensaje").value;
+    let input = document.getElementById("mensaje");
+    let mensaje = input.value;
     let chat = document.getElementById("chat");
 
     if (mensaje.trim() === "") return;
 
     fetch("/chat", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({mensaje: mensaje})
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ mensaje: mensaje })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
 
-        // Limpiar chat
         chat.innerHTML = "";
 
-        // Mostrar historial completo
         data.historial.forEach(item => {
             chat.innerHTML += `<div class="mensaje usuario">${item.usuario}</div>`;
             chat.innerHTML += `<div class="mensaje robot">${item.robot}</div>`;
@@ -160,33 +154,12 @@ function enviar() {
 
         chat.scrollTop = chat.scrollHeight;
 
-        // Actualizar barra
         document.getElementById("energiaNivel").style.width = data.energia + "%";
         document.getElementById("estadoTexto").innerText =
             "Energía: " + data.energia + " | Estado: " + data.emocion;
-
-        // Actualizar núcleo
-        let core = document.getElementById("core");
-
-        if (data.energia > 50) {
-            core.style.background = "#00f7ff";
-            core.style.boxShadow = "0 0 20px #00f7ff";
-            core.style.animationDuration = "1s";
-        } 
-        else if (data.energia > 20) {
-            core.style.background = "orange";
-            core.style.boxShadow = "0 0 20px orange";
-            core.style.animationDuration = "1.5s";
-        } 
-        else {
-            core.style.background = "red";
-            core.style.boxShadow = "0 0 20px red";
-            core.style.animationDuration = "0.5s";
-        }
-
     });
 
-    document.getElementById("mensaje").value = "";
+    input.value = "";
 }
 </script>
 
